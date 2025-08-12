@@ -1,0 +1,137 @@
+package.json
+
+{
+  "name": "todo-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "next": "14.2.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwindcss": "^3.4.7",
+    "postcss": "^8.4.27",
+    "autoprefixer": "^10.4.16"
+  }
+}
+/** @type {import('next').NextConfig} */
+const nextConfig = {}
+
+module.exports = nextConfig
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+import '@/styles/globals.css'
+
+export default function App({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+export default function Home() {
+  const [todos, setTodos] = useState([]);
+  const [title, setTitle] = useState("");
+
+  const API_URL = "http://127.0.0.1:8000/api/todos/";
+
+  const fetchTodos = async () => {
+    const res = await axios.get(API_URL);
+    setTodos(res.data);
+  };
+
+  const addTodo = async () => {
+    if (!title.trim()) return;
+    await axios.post(API_URL, { title, completed: false });
+    setTitle("");
+    fetchTodos();
+  };
+
+  const toggleTodo = async (id, completed) => {
+    await axios.patch(`${API_URL}${id}/`, { completed: !completed });
+    fetchTodos();
+  };
+
+  const deleteTodo = async (id) => {
+    await axios.delete(`${API_URL}${id}/`);
+    fetchTodos();
+  };
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-4">TODO App</h1>
+
+        <div className="flex mb-4">
+          <input
+            type="text"
+            className="flex-1 border rounded-l px-3 py-2"
+            placeholder="Add new task..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <button
+            onClick={addTodo}
+            className="bg-blue-500 text-white px-4 rounded-r hover:bg-blue-600"
+          >
+            Add
+          </button>
+        </div>
+
+        <ul>
+          {todos.map((todo) => (
+            <li
+              key={todo.id}
+              className="flex items-center justify-between mb-2 border-b pb-1"
+            >
+              <span
+                onClick={() => toggleTodo(todo.id, todo.completed)}
+                className={`cursor-pointer ${
+                  todo.completed ? "line-through text-gray-500" : ""
+                }`}
+              >
+                {todo.title}
+              </span>
+              <button
+                onClick={() => deleteTodo(todo.id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
